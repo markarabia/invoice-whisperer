@@ -11,13 +11,19 @@ DRIVE_FOLDER_ID = os.getenv("GOOGLE_DRIVE_FOLDER_ID")
 SCOPES = ["https://www.googleapis.com/auth/drive.file"]
 CREDS = service_account.Credentials.from_service_account_file("credentials.json", scopes=SCOPES)
 
-
 def upload_to_drive(vendor_name, file_path):
     service = build("drive", "v3", credentials=CREDS)
 
     # Check if folder exists for vendor, otherwise create
     query = f"'{DRIVE_FOLDER_ID}' in parents and name = '{vendor_name}' and mimeType = 'application/vnd.google-apps.folder'"
-    results = service.files().list(q=query, spaces='drive', fields="files(id, name)").execute()
+    results = service.files().list(
+        q=query,
+        spaces='drive',
+        fields="files(id, name)",
+        supportsAllDrives=True,
+        includeItemsFromAllDrives=True
+    ).execute()
+
     items = results.get("files", [])
     
     if items:
@@ -28,7 +34,11 @@ def upload_to_drive(vendor_name, file_path):
             "mimeType": "application/vnd.google-apps.folder",
             "parents": [DRIVE_FOLDER_ID]
         }
-        folder = service.files().create(body=file_metadata, fields="id").execute()
+        folder = service.files().create(
+            body=file_metadata,
+            fields="id",
+            supportsAllDrives=True
+        ).execute()
         folder_id = folder.get("id")
 
     # Upload file using correct media type
@@ -40,5 +50,9 @@ def upload_to_drive(vendor_name, file_path):
     }
     media = MediaFileUpload(file_path, mimetype=mime_type, resumable=True)
 
-    service.files().create(body=file_metadata, media_body=media, fields="id").execute()
-
+    service.files().create(
+        body=file_metadata,
+        media_body=media,
+        fields="id",
+        supportsAllDrives=True
+    ).execute()
