@@ -48,9 +48,13 @@ def detect_vendor(pdf_path, file_name=""):
         vendor = detect_vendor_from_text(text)
         if vendor:
             return vendor
+
     # Fallback: filename keywords
-    lower = file_name.lower()
+    filename = os.path.basename(pdf_path) if not file_name else file_name
+    lower = filename.lower()
     for vendor in VENDOR_LOGOS:
         if vendor.split()[0].lower() in lower:
             return vendor
+
     return "UNKNOWN"
+
