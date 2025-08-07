@@ -27,7 +27,7 @@ if uploaded_file:
         text = extract_text_from_pdf(tmp_path)
 
         # Detect vendor from text or filename
-        vendor = detect_vendor(text, tmp_path)
+        vendor = detect_vendor(tmp_path, uploaded_file.name)
         if not vendor:
             st.error("❌ Could not detect vendor. Please check the file or rename it to include the vendor.")
         else:
